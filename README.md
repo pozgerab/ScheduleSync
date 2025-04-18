@@ -1,11 +1,11 @@
-### ScheduleSync
+## ScheduleSync
 
 ScheduleSync simplifies multiplayer gameplay for Schedule I by using cloud syncing. This lets you play together without a dedicated host.
 
 ### How to Run
 
 1. Clone the repository:  
-   git clone <repository-url>
+   git clone https://github.com/pozgerab/ScheduleSync
 
 2. Install the necessary tools:  
    • Download and install Go from https://golang.org/dl/  

@@ -59,7 +59,7 @@ const (
 	BlobName    = "saved-world"
 	BackupName  = "backup-world"
 	ConfigPath  = "config/config.json"
-	TempDirName = "rokussync"
+	TempDirName = "schedulesync"
 )
 
 type Config struct {
