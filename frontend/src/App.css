@@ -1,0 +1,12 @@
+input {
+  font-size: 1.125rem;
+}
+
+.syncdiv button:hover {
+  transform: scale(1.1);
+  transition-duration: 200ms;
+  -webkit-transform: scale(1.1);
+  -moz-transform: scale(1.1);
+  -ms-transform: scale(1.1);
+  -o-transform: scale(1.1);
+}
