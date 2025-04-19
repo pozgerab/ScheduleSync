@@ -150,9 +150,10 @@ function App() {
     });
   }
 
-  function writeConfig() {
+  function writeConfig(config: main.Config) {
     if (canSaveConfig) {
-      WriteConfig(currentConfig).then(() => {
+      WriteConfig(config).then(() => {
+        toast("Wrote config");
         console.log("Wrote config");
       });
     }
@@ -270,7 +271,7 @@ function ConfigPage({
   currentConfig: main.Config;
   setCurrentConfig: React.Dispatch<React.SetStateAction<main.Config>>;
   setSlot: (ord?: number) => void;
-  writeConfig: () => void;
+  writeConfig: (config: main.Config) => void;
   availableSaves: SaveType[];
   buckets: string[];
   refreshData: () => void;
@@ -283,7 +284,9 @@ function ConfigPage({
           type="number"
           placeholder="id"
           className="place-self-start w-80 self-center"
-          onBlur={writeConfig}
+          onBlur={() => {
+            writeConfig(currentConfig);
+          }}
           onChange={(event) =>
             setCurrentConfig((prev) => ({
               ...prev,
@@ -297,11 +300,14 @@ function ConfigPage({
           <Select
             defaultValue={currentConfig.save_slot.toString()}
             onValueChange={(newVal) => {
-              setCurrentConfig((prev) => ({
-                ...prev,
-                save_slot: Number.parseInt(newVal),
-              }));
-              writeConfig();
+              setCurrentConfig((prev) => {
+                const updated = {
+                  ...prev,
+                  save_slot: Number.parseInt(newVal),
+                };
+                writeConfig(updated);
+                return updated;
+              });
             }}
           >
             <SelectTrigger className="p-5">
@@ -325,11 +331,15 @@ function ConfigPage({
         <Select
           defaultValue={currentConfig.bucket_name}
           onValueChange={(newVal) => {
-            setCurrentConfig((prev) => ({
-              ...prev,
-              bucket_name: newVal,
-            }));
-            writeConfig();
+            setCurrentConfig((prev) => {
+              const updated = {
+                ...prev,
+                bucket_name: newVal,
+              };
+              writeConfig(updated);
+              return updated;
+            });
+            writeConfig(currentConfig);
           }}
         >
           <SelectTrigger className="p-5">
@@ -349,7 +359,9 @@ function ConfigPage({
           placeholder="blob-name"
           className="place-self-start w-80 self-center"
           spellCheck={false}
-          onBlur={writeConfig}
+          onBlur={() => {
+            writeConfig(currentConfig);
+          }}
           onChange={(event) =>
             setCurrentConfig((prev) => ({
               ...prev,

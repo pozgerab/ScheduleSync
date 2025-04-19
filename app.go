@@ -57,8 +57,6 @@ func (a *App) startup(ctx context.Context) {
 
 const (
 	SavePrefix  = "SaveGame_"
-	BucketName  = "schedule1-save"
-	BlobName    = "saved-world"
 	BackupName  = "backup-world"
 	TempDirName = "schedulesync"
 )
