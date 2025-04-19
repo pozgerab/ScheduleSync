@@ -10,12 +10,16 @@ export function GetOrgName(arg1, arg2) {
   return window['go']['main']['utils']['GetOrgName'](arg1, arg2);
 }
 
-export function ReadConfig(arg1) {
-  return window['go']['main']['utils']['ReadConfig'](arg1);
+export function ListBuckets() {
+  return window['go']['main']['utils']['ListBuckets']();
 }
 
-export function ReadJSONField(arg1, arg2) {
-  return window['go']['main']['utils']['ReadJSONField'](arg1, arg2);
+export function OpenConfigDir() {
+  return window['go']['main']['utils']['OpenConfigDir']();
+}
+
+export function ReadConfig(arg1) {
+  return window['go']['main']['utils']['ReadConfig'](arg1);
 }
 
 export function UnzipFile(arg1, arg2) {

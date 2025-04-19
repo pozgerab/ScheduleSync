@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -58,7 +60,6 @@ const (
 	BucketName  = "schedule1-save"
 	BlobName    = "saved-world"
 	BackupName  = "backup-world"
-	ConfigPath  = "config/config.json"
 	TempDirName = "schedulesync"
 )
 
@@ -84,6 +85,30 @@ type Creds struct {
 }
 
 type utils struct {
+}
+
+func openPath(path string) error {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("explorer", path)
+	case "darwin":
+		cmd = exec.Command("open", path)
+	default:
+		cmd = exec.Command("xdg-open", path)
+	}
+
+	return cmd.Run()
+}
+
+func (u *utils) OpenConfigDir() error {
+	configDir, err := getConfigDir()
+	if err != nil {
+		return fmt.Errorf("configdir: %v", err)
+	}
+	openPath(configDir)
+	return nil
 }
 
 func (cfg *Config) GetCurrentConfig() Config {
@@ -166,7 +191,7 @@ func (c *Config) WriteConfig(cfg Config) error {
 	return os.WriteFile(path, data, 0644)
 }
 
-func (u *utils) ReadJSONField(path, field string) (any, error) {
+func readJSONField(path, field string) (any, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -189,7 +214,7 @@ func (u *utils) GetOrgName(cfg Config, slot int8) string {
 	savesPath, _, _ := configInst.GetPaths(cfg)
 	if pathExists(savesPath) {
 		gameDataPath := path.Join(savesPath, fmt.Sprintf("%s%d", SavePrefix, slot), "Game.json")
-		val, err := u.ReadJSONField(gameDataPath, "OrganisationName")
+		val, err := readJSONField(gameDataPath, "OrganisationName")
 		if err == nil {
 			val, ok := val.(string)
 			if ok {

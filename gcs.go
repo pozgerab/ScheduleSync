@@ -88,3 +88,39 @@ func (u *utils) DownloadFile(fileName string, cfg Config) (string, error) {
 	fmt.Printf("Downloaded gs://%s/%s to %s\n", cfg.BucketName, cfg.BlobName, localDestination)
 	return localDestination, nil
 }
+
+func (u *utils) ListBuckets() ([]string, error) {
+	ctx := context.Background()
+
+	credPath, err := credentialsPath()
+	if err != nil {
+		return nil, fmt.Errorf("credpath: %v", err)
+	}
+
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(credPath))
+	if err != nil {
+		return nil, fmt.Errorf("storage.NewClient: %v", err)
+	}
+	defer client.Close()
+
+	projectIdAny, err := readJSONField(credPath, "project_id")
+	if err != nil {
+		return nil, fmt.Errorf("readprojectid: %v", err)
+	}
+
+	var projectId string = projectIdAny.(string)
+	var bucketNames []string
+
+	bucketIt := client.Buckets(ctx, projectId)
+	for {
+		bucketAttrs, err := bucketIt.Next()
+		if err != nil {
+			if err.Error() == "no more items in iterator" {
+				break
+			}
+			return nil, fmt.Errorf("error iterating buckets: %w", err)
+		}
+		bucketNames = append(bucketNames, bucketAttrs.Name)
+	}
+	return bucketNames, nil
+}

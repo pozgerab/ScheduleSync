@@ -1,8 +1,8 @@
-## ScheduleSync
+# ScheduleSync
 
 ScheduleSync simplifies multiplayer gameplay for Schedule I by using cloud syncing. This lets you play together without a dedicated host.
 
-### How to Run
+## How to Run
 
 1. Clone the repository:  
    git clone https://github.com/pozgerab/ScheduleSync
@@ -22,14 +22,20 @@ ScheduleSync simplifies multiplayer gameplay for Schedule I by using cloud synci
    • Or, to start a local development version, run:  
     wails dev
 
-### Authentication
+## Authentication
 
 Authentication is performed entirely on your machine and is never uploaded anywhere. Currently, the only supported cloud service is Google Storage. It is best to use a service account from the Google Cloud Console.
 
-#### In-Code Setup
+**!!! You should only share your authentication with those WHO YOU TRUST and will play with as those with your authentication data can access you cloud storage.**
 
-For quick testing, you can insert your authentication data directly in the `creds` struct in `app.go` at line 117. Running the app will then generate a file on your device with your auth data.
+**MAKE SURE TO ONLY GIVE THE NECESSARY PERMISSIONS TO THE SERVICE ACCOUNT FOR SECURITY REASONS**
 
-#### Using a Credentials File
+If you want to stop using this project, delete the `%appdata%/schedulesync/credentials.json` file just in case.
+
+### Using a Credentials File
 
 For a more convenient approach, save your downloaded credentials JSON file to `%appdata%/schedulesync/` and rename it to `credentials.json`.
+
+### In-Code Setup
+
+For quick testing, you can insert your authentication data directly in the `creds` struct in `app.go` at line 117. Running the app will then generate a file on your device with your auth data.

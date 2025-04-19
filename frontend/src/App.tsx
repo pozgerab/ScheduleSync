@@ -4,6 +4,8 @@ import {
   ArrowUpDown,
   CloudDownload,
   CloudUpload,
+  FolderCog,
+  Info,
   RefreshCcw,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -16,6 +18,8 @@ import {
   UploadFile,
   DownloadFile,
   UnzipFile,
+  ListBuckets,
+  OpenConfigDir,
 } from "../wailsjs/go/main/utils";
 import {
   GetSaves,
@@ -43,6 +47,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { main } from "wailsjs/go/models";
 import { Button } from "./components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  TooltipWrapper,
+} from "@/components/ui/tooltip";
+import React from "react";
 
 const pages = ["Sync", "Config"];
 const DATE_FORMAT = "MM_dd-mm_ss";
@@ -56,6 +68,7 @@ function App() {
   });
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [saves, setSaves] = useState<Array<SaveType>>([]);
+  const [buckets, setBuckets] = useState<Array<string>>([]);
   const [orgNames, setOrgNames] = useState<Array<string | undefined>>([]);
   const [canSaveConfig, setCanSaveConfig] = useState(false);
 
@@ -104,13 +117,16 @@ function App() {
   }
 
   useEffect(() => {
-    GetCurrentConfig()
-      .then((data) => {
-        setCurrentConfig({ ...data });
-      })
-      .finally(() => {
-        setCanSaveConfig(true);
-      });
+    GetCurrentConfig().then((data) => {
+      setCurrentConfig({ ...data });
+      ListBuckets()
+        .then((buckets) => {
+          setBuckets(buckets);
+        })
+        .finally(() => {
+          setCanSaveConfig(true);
+        });
+    });
   }, []);
 
   function refreshData() {
@@ -159,16 +175,55 @@ function App() {
 
   return (
     <>
-      <nav className="flex justify-between w-auto h-16 items-center text-4xl border-b-3 m-5">
+      <nav className="flex justify-between w-auto h-16 items-center text-4xl border-b-3 m-5 p-2">
         {pages[currentPage]}
-        <button className="switch w-auto">
-          <ArrowUpDown
-            onClick={() => {
-              setCurrentPage((prev) => (prev + 1) % 2);
-            }}
-            className="w-auto rounded-2xl hover:scale-125 hover:bg-accent m-4 h-10 p-1 duration-200"
-          />
-        </button>
+        <div className="flex gap-10 *:self-center *:p-0!">
+          <TooltipProvider>
+            <Tooltip delayDuration={600}>
+              <TooltipTrigger>
+                <Info size={32} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm max-w-60 p-2">
+                  To authenticate copy your google service account credentials
+                  JSON file to the config folder and rename it to
+                  "credentials.json"
+                  <br />
+                  <br /> Make sure the service account has all the necessary
+                  access to manage the bucket and objects
+                  <br />
+                  <br />
+                  <b className="uppercase text-[0.9rem]">
+                    You should only share this with those who you will play with
+                    and trust
+                  </b>
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipWrapper title="Open Config Folder">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={OpenConfigDir}
+              className="hover:scale-150 scale-200 hoever:p-[-10px]"
+            >
+              <FolderCog size={32} />
+            </Button>
+          </TooltipWrapper>
+          <TooltipWrapper title="Switch Page">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:scale-150 scale-200 hoever:p-[-10px]"
+              onClick={() => {
+                setCurrentPage((prev) => (prev + 1) % 2);
+              }}
+            >
+              <ArrowUpDown size={32} />
+            </Button>
+          </TooltipWrapper>
+        </div>
       </nav>
       {currentPage == 1 ? (
         <ConfigPage
@@ -190,6 +245,7 @@ function App() {
               }))
             )
             .sort((val1, val2) => val1.id - val2.id)}
+          buckets={buckets}
         />
       ) : (
         <SyncPage
@@ -208,6 +264,7 @@ function ConfigPage({
   setCurrentConfig,
   writeConfig,
   availableSaves,
+  buckets,
   refreshData,
 }: {
   currentConfig: main.Config;
@@ -215,6 +272,7 @@ function ConfigPage({
   setSlot: (ord?: number) => void;
   writeConfig: () => void;
   availableSaves: SaveType[];
+  buckets: string[];
   refreshData: () => void;
 }) {
   return (
@@ -250,17 +308,13 @@ function ConfigPage({
               <SelectValue placeholder="slot" />
             </SelectTrigger>
             <SelectContent>
-              <>
-                {availableSaves.map((save) => {
-                  return (
-                    <SelectItem value={save.id.toString()} key={save.id}>
-                      {`${
-                        save.orgName == undefined ? "Empty Slot" : save.orgName
-                      } (${save.slot})`}
-                    </SelectItem>
-                  );
-                })}
-              </>
+              {availableSaves.map((save) => (
+                <SelectItem value={save.id.toString()} key={save.id}>
+                  {`${
+                    save.orgName == undefined ? "Empty Slot" : save.orgName
+                  } (${save.slot})`}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button onClick={refreshData}>
@@ -268,24 +322,33 @@ function ConfigPage({
           </Button>
         </div>
         <Label>Bucket Name</Label>
-        <Input
-          type="text"
-          placeholder="bucket-name"
-          className="place-self-start w-80 self-center"
-          onBlur={writeConfig}
-          onChange={(event) =>
+        <Select
+          defaultValue={currentConfig.bucket_name}
+          onValueChange={(newVal) => {
             setCurrentConfig((prev) => ({
               ...prev,
-              bucket_name: event.target.value,
-            }))
-          }
-          value={currentConfig.bucket_name}
-        />
+              bucket_name: newVal,
+            }));
+            writeConfig();
+          }}
+        >
+          <SelectTrigger className="p-5">
+            <SelectValue placeholder="bucket-name" />
+          </SelectTrigger>
+          <SelectContent>
+            {buckets.map((bucket) => (
+              <SelectItem value={bucket} key={bucket}>
+                {bucket}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Label>Blob Name</Label>
         <Input
           type="text"
           placeholder="blob-name"
           className="place-self-start w-80 self-center"
+          spellCheck={false}
           onBlur={writeConfig}
           onChange={(event) =>
             setCurrentConfig((prev) => ({
@@ -341,7 +404,7 @@ function SyncPage({
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. The current world at the
-                  selected slot will be replaced to the one in the cloud.
+                  selected slot will be replaced with the one in the cloud.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

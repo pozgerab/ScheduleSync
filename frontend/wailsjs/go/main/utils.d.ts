@@ -6,9 +6,11 @@ export function DownloadFile(arg1:string,arg2:main.Config):Promise<string>;
 
 export function GetOrgName(arg1:main.Config,arg2:number):Promise<string>;
 
-export function ReadConfig(arg1:string):Promise<main.Config>;
+export function ListBuckets():Promise<Array<string>>;
 
-export function ReadJSONField(arg1:string,arg2:string):Promise<any>;
+export function OpenConfigDir():Promise<void>;
+
+export function ReadConfig(arg1:string):Promise<main.Config>;
 
 export function UnzipFile(arg1:string,arg2:main.Config):Promise<void>;
 
